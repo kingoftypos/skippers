@@ -1,9 +1,26 @@
-import React from 'react';
-
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 function Search() {
+  const [tags,setTags]=useState([]);
+const [user,setUser]=useState("");
+//console.log(user);
+async function checkForCheated()
+{
+  try{
+  const res=await axios.get(`https://codeforces.com/api/user.status?handle=${user}`);
+  setTags(
+    res.result
+      .filter((ele) => ele.author.participantType === "CONTESTANT" && ele.verdict === "SKIPPED")
+      .map((ele) => ele.contestId)
+  );
+  }
+  catch{
+    console.log("no such user exist");
+  } 
+}
   return (
     <div className="w-full flex justify-center mt-12">
-      <form className="max-w-md w-full space-y-4">   
+      <form className="max-w-md w-full space-y-4" >   
         <label
           htmlFor="default-search"
           className="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white"
@@ -31,12 +48,18 @@ function Search() {
           <input
             type="search"
             id="searchbtn"
+            value={user}
+            onChange={(e)=>setUser(e.target.value)}
             className="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gradient-to-r from-[#414345] to-[#232526] focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
             placeholder="Search CodeForces ID"
             required
           />
           <button
-            type="submit"
+            type="submit" 
+            onClick={(e)=>{
+              e.preventDefault();
+              checkForCheated();
+            }}
             className="text-white absolute right-2.5 bottom-2.5 bg-gradient-to-r from-[#182848] to-[#4b6cb7] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >
             Search
