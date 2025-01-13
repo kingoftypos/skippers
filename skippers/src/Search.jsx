@@ -1,23 +1,41 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useRecoilState } from 'recoil';
+import { userState,tagState, showState } from "./atoms";
 function Search() {
-  const [tags,setTags]=useState([]);
-const [user,setUser]=useState("");
+  const [tags,setTags]=useRecoilState(tagState);
+const [user,setUser]=useRecoilState(userState);
+const[show,setShow]=useRecoilState(showState);
 //console.log(user);
-async function checkForCheated()
-{
-  try{
-  const res=await axios.get(`https://codeforces.com/api/user.status?handle=${user}`);
-  setTags(
-    res.result
-      .filter((ele) => ele.author.participantType === "CONTESTANT" && ele.verdict === "SKIPPED")
-      .map((ele) => ele.contestId)
-  );
+async function checkForCheated(user) {
+  try {
+    const res = await axios.get(`https://codeforces.com/api/user.status?handle=${user}`);
+
+    if (res.data.result) {
+      const skippedContests = res.data.result
+        .filter((ele) => (ele.author.participantType === "OUT_OF_COMPETITION") && ele.verdict === "SKIPPED")
+        .map((ele) => ele.contestId);
+
+      const uniqueContests = [...new Set(skippedContests)];
+
+      const val = await axios.get(`https://codeforces.com/api/contest.list?gym=false`);
+      const contests = val.data.result;
+
+      const contestNames = contests
+        .filter((contest) => uniqueContests.includes(contest.id))
+        .map((contest) => contest.name);
+
+      setTags(contestNames);
+      setShow(true);
+    } else {
+      console.log("No results found for this user.");
+    }
+  } catch (error) {
+    console.log("Error fetching data: ", error.message);
   }
-  catch{
-    console.log("no such user exist");
-  } 
 }
+
+
   return (
     <div className="w-full flex justify-center mt-12">
       <form className="max-w-md w-full space-y-4" >   
@@ -58,7 +76,7 @@ async function checkForCheated()
             type="submit" 
             onClick={(e)=>{
               e.preventDefault();
-              checkForCheated();
+              checkForCheated(user);
             }}
             className="text-white absolute right-2.5 bottom-2.5 bg-gradient-to-r from-[#182848] to-[#4b6cb7] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
           >

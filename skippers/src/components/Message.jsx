@@ -1,6 +1,9 @@
+import { tagState } from '@/atoms'
 import React from 'react'
-
-function Message({isCheater}) {
+import { useRecoilValue } from 'recoil'
+function Message() {
+  const tags=useRecoilValue(tagState);
+  const isCheater=(tags.length>0);
   return (
     <div>
        {
