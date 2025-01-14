@@ -31,6 +31,7 @@ async function checkForCheated(user) {
       console.log("No results found for this user.");
     }
   } catch (error) {
+    setShow(false);
     console.log("Error fetching data: ", error.message);
   }
 }
